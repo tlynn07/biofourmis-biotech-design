@@ -1,0 +1,985 @@
+/* =============================================
+   Biofourmis Biosensor Portal — App Logic
+   ============================================= */
+
+/* ===========================  PATIENT DATA  =========================== */
+const PATIENTS = {
+  P001: {
+    id: 'P001', initials: 'ML', avatarBg: '#fee2e2', avatarColor: '#dc2626',
+    name: 'Maria Lopez', age: 54, gender: 'Female', dob: 'March 12, 1972',
+    bloodType: 'A+', weight: '148 lbs', height: "5'4\"",
+    phone: '(415) 555-0142', insurance: 'Blue Shield PPO',
+    emergency: 'Juan Lopez (Husband) · (415) 555-0143',
+    department: 'Cardiology', physician: 'Dr. Reynolds',
+    status: 'Critical', statusClass: 'pli-badge-red',
+    biosensor: 'MediCore Band Pro · SN: MC-4821',
+    conditions: ['Cardiac Arrhythmia', 'Hypertension Stage 1', 'Type 2 Diabetes'],
+    medications: [
+      { name: 'Metoprolol', dose: '50 mg · Twice daily', note: 'β-blocker — heart rate & BP' },
+      { name: 'Lisinopril', dose: '10 mg · Once daily', note: 'ACE inhibitor — hypertension' },
+      { name: 'Metformin', dose: '1000 mg · Twice daily', note: 'Biguanide — diabetes' },
+    ],
+    allergies: ['Penicillin (Anaphylaxis)', 'Sulfonamides (Rash)'],
+    history: 'Cardiac arrhythmia diagnosed 2019 after Holter monitoring. Hypertension diagnosed 2021. Type 2 diabetes diagnosed 2018. Family history: Father — MI at 62; Mother — Type 2 Diabetes.',
+    notes: 'Biosensor shows intermittent tachycardia episodes (HR > 100) and consistent morning BP spikes. Blood glucose averaging 148–165 mg/dL. Increase monitoring frequency.',
+    vitals: {
+      heartRate:   { base: 88, range: 14, normal: [60, 100], unit: 'bpm', label: 'Heart Rate' },
+      systolic:    { base: 142, range: 8,  normal: [90, 140], unit: 'mmHg', label: 'Systolic BP' },
+      diastolic:   { base: 92,  range: 5,  normal: [60, 90],  unit: 'mmHg', label: 'Diastolic BP' },
+      spo2:        { base: 96,  range: 2,  normal: [94, 100], unit: '%',    label: 'SpO₂' },
+      temperature: { base: 98.6,range: 0.3,normal: [97, 99.5],unit: '°F',  label: 'Temperature' },
+      respRate:    { base: 18,  range: 2,  normal: [12, 20],  unit: '/min', label: 'Resp. Rate' },
+      glucose:     { base: 152, range: 18, normal: [70, 140], unit: 'mg/dL',label: 'Blood Glucose' },
+    }
+  },
+  P002: {
+    id: 'P002', initials: 'JC', avatarBg: '#fef3c7', avatarColor: '#b45309',
+    name: 'James Chen', age: 41, gender: 'Male', dob: 'July 3, 1984',
+    bloodType: 'O+', weight: '182 lbs', height: "5'9\"",
+    phone: '(415) 555-0267', insurance: 'Kaiser Permanente HMO',
+    emergency: 'Linda Chen (Wife) · (415) 555-0268',
+    department: 'Endocrinology', physician: 'Dr. Patel',
+    status: 'Monitor', statusClass: 'pli-badge-yellow',
+    biosensor: 'MediCore Band Lite · SN: MC-4820',
+    conditions: ['Type 2 Diabetes (uncontrolled)', 'Pre-hypertension', 'Obesity (BMI 28.4)'],
+    medications: [
+      { name: 'Metformin', dose: '500 mg · Twice daily', note: 'Biguanide — diabetes' },
+      { name: 'Amlodipine', dose: '5 mg · Once daily', note: 'CCB — pre-hypertension' },
+    ],
+    allergies: ['None known'],
+    history: 'Type 2 Diabetes diagnosed 2020 with HbA1c 9.1%. Improved to 8.2% on Metformin. Pre-hypertension monitored since 2022. Enrolled in remote biosensor monitoring program June 2026.',
+    notes: 'Fasting glucose consistently elevated (180–220 mg/dL). Recommend dietary counseling and possible medication escalation. BP borderline (128–135/83–88 mmHg).',
+    vitals: {
+      heartRate:   { base: 76,  range: 8,  normal: [60, 100], unit: 'bpm',  label: 'Heart Rate' },
+      systolic:    { base: 130, range: 6,  normal: [90, 140], unit: 'mmHg', label: 'Systolic BP' },
+      diastolic:   { base: 84,  range: 4,  normal: [60, 90],  unit: 'mmHg', label: 'Diastolic BP' },
+      spo2:        { base: 98,  range: 1,  normal: [94, 100], unit: '%',    label: 'SpO₂' },
+      temperature: { base: 98.4,range: 0.2,normal: [97, 99.5],unit: '°F',  label: 'Temperature' },
+      respRate:    { base: 16,  range: 2,  normal: [12, 20],  unit: '/min', label: 'Resp. Rate' },
+      glucose:     { base: 196, range: 22, normal: [70, 140], unit: 'mg/dL',label: 'Blood Glucose' },
+    }
+  },
+  P003: {
+    id: 'P003', initials: 'SP', avatarBg: '#d1fae5', avatarColor: '#065f46',
+    name: 'Sarah Park', age: 29, gender: 'Female', dob: 'November 22, 1996',
+    bloodType: 'B-', weight: '128 lbs', height: "5'5\"",
+    phone: '(415) 555-0391', insurance: 'United Health Group PPO',
+    emergency: 'David Park (Father) · (415) 555-0392',
+    department: 'General Surgery', physician: 'Dr. Torres',
+    status: 'Stable', statusClass: 'pli-badge-green',
+    biosensor: 'MediCore Band Lite · SN: MC-4819',
+    conditions: ['Post-Appendectomy (Day 13)', 'Mild Post-Op Inflammation'],
+    medications: [
+      { name: 'Amoxicillin', dose: '500 mg · 3× daily · 3 days left', note: 'Antibiotic — post-surgical prophylaxis' },
+      { name: 'Ibuprofen', dose: '400 mg · PRN', note: 'NSAID — pain & inflammation management' },
+    ],
+    allergies: ['Codeine (Nausea/Vomiting)'],
+    history: 'Appendectomy performed May 28, 2026. Uncomplicated procedure. Discharged June 1. Currently Day 13 post-op. Follow-up scheduled June 20.',
+    notes: 'Recovery proceeding well. Biosensor temperature slightly elevated (98.8–99.2°F) — expected post-surgical inflammation. All other vitals within normal range.',
+    vitals: {
+      heartRate:   { base: 72,  range: 6,  normal: [60, 100], unit: 'bpm',  label: 'Heart Rate' },
+      systolic:    { base: 118, range: 5,  normal: [90, 140], unit: 'mmHg', label: 'Systolic BP' },
+      diastolic:   { base: 76,  range: 4,  normal: [60, 90],  unit: 'mmHg', label: 'Diastolic BP' },
+      spo2:        { base: 98,  range: 1,  normal: [94, 100], unit: '%',    label: 'SpO₂' },
+      temperature: { base: 99.0,range: 0.2,normal: [97, 99.5],unit: '°F',  label: 'Temperature' },
+      respRate:    { base: 15,  range: 2,  normal: [12, 20],  unit: '/min', label: 'Resp. Rate' },
+      glucose:     { base: 93,  range: 8,  normal: [70, 140], unit: 'mg/dL',label: 'Blood Glucose' },
+    }
+  }
+};
+
+/* ===========================  MESSAGES STATE  =========================== */
+const MESSAGES = [
+  { id: 1, from: 'doctor', text: "Good morning, Maria. I've been reviewing your overnight biosensor data. Your resting heart rate has been averaging 88–95 bpm — slightly above our target. How are you feeling today?", time: '8:45 AM', date: 'Today' },
+  { id: 2, from: 'patient', text: "Good morning, Dr. Reynolds. I've been feeling some chest tightness in the mornings, especially around 6–7 AM. It usually goes away after about an hour.", time: '9:12 AM', date: 'Today' },
+  { id: 3, from: 'doctor', text: "That tracks with the biosensor data — I can see your heart rate spikes to around 112 bpm in that window. Are you sleeping well? Elevated HR in early morning can be related to stress or disrupted sleep.", time: '9:18 AM', date: 'Today' },
+  { id: 4, from: 'patient', text: "Not really. I've been waking up around 5–6 AM feeling anxious and unable to fall back to sleep. Could this be affecting my heart?", time: '9:25 AM', date: 'Today' },
+  { id: 5, from: 'doctor', text: "Yes, morning anxiety can trigger cortisol release which elevates both heart rate and blood pressure. I'm going to slightly increase your Metoprolol to 75mg in the evening dose. I'm also sending you a breathing exercise guide. Please try it before bed for the next week.", time: '9:31 AM', date: 'Today' },
+  { id: 6, from: 'patient', text: "Thank you. My biosensor is showing 145/92 this morning. Should I be worried? It seems higher than usual.", time: '9:45 AM', date: 'Today' },
+  { id: 7, from: 'doctor', text: "145/92 is elevated but manageable. I've noted it. Please reduce sodium intake this week — aim for under 1500mg/day. Avoid caffeine after noon and try a 20-min evening walk. If your BP goes above 160/100 at any time, message me immediately or call the clinic.", time: '9:52 AM', date: 'Today' },
+];
+
+/* ===========================  VITALS ICONS (inline SVG strings)  =========================== */
+const VITAL_ICONS = {
+  heartRate:   `<svg viewBox="0 0 24 24" fill="none"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  systolic:    `<svg viewBox="0 0 24 24" fill="none"><path d="M22 12h-4l-3 9L9 3l-3 9H2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  diastolic:   `<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`,
+  spo2:        `<svg viewBox="0 0 24 24" fill="none"><path d="M12 22a10 10 0 100-20 10 10 0 000 20zM8 12h8M12 8v8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`,
+  temperature: `<svg viewBox="0 0 24 24" fill="none"><path d="M14 14.76V3.5a2.5 2.5 0 00-5 0v11.26a4.5 4.5 0 105 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  respRate:    `<svg viewBox="0 0 24 24" fill="none"><path d="M3 12a9 9 0 0018 0 9 9 0 00-18 0zM12 8v4l3 3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`,
+  glucose:     `<svg viewBox="0 0 24 24" fill="none"><path d="M9 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2h-2M9 3a1 1 0 000 2h6a1 1 0 000-2M9 3a1 1 0 011-1h4a1 1 0 011 1m-3 8h.01M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+};
+const VITAL_ICON_CLASS = {
+  heartRate: 'vci-red', systolic: 'vci-orange', diastolic: 'vci-orange',
+  spo2: 'vci-blue', temperature: 'vci-teal', respRate: 'vci-purple', glucose: 'vci-green'
+};
+const VITAL_KEYS = ['heartRate', 'systolic', 'diastolic', 'spo2', 'temperature', 'respRate', 'glucose'];
+
+/* ===========================  STATE  =========================== */
+let currentPortal   = 'doctor';
+let activePatientId = 'P001';
+let currentVitals   = {}; // { heartRate: number, ... }
+let vitalsHistory   = {}; // { heartRate: [last 12 values], ... }
+let spikeMode       = false;
+let spikeTick       = 0;
+let alertCount      = 0;
+let updateCountdown = 2;
+let mapInitialized  = false;
+let trendCharts     = {};
+let leafletMap      = null;
+
+/* ===========================  ECG ENGINE  =========================== */
+// PQRST template (normalized 0-1 for Y amplitude)
+const ECG_TEMPLATE = [
+  0,0,0,0,0,0,
+  0.05,0.12,0.18,0.22,0.20,0.14,0.07,0.02,  // P wave
+  0,0,0,0,
+  -0.05,-0.18,  // Q dip
+  0.35,0.8,1.0,0.8,0.35,  // R spike
+  -0.25,-0.12,  // S dip
+  0,0,0,0,
+  0.04,0.10,0.18,0.25,0.22,0.15,0.08,0.03,  // T wave
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0  // TP baseline
+];
+
+class ECGRenderer {
+  constructor(canvasId, color = '#dc2626') {
+    this.canvas = document.getElementById(canvasId);
+    this.ctx = this.canvas ? this.canvas.getContext('2d') : null;
+    this.color = color;
+    this.buffer = [];
+    this.templateIdx = 0;
+    this.pixelsPerPoint = 3;
+    this.running = false;
+    this.animId = null;
+    this.lastFrameTime = 0;
+    this.frameInterval = 1000 / 50; // ~50fps
+  }
+  start() {
+    if (!this.ctx || this.running) return;
+    this.running = true;
+    this.resize();
+    this._loop(0);
+  }
+  stop() { this.running = false; if (this.animId) cancelAnimationFrame(this.animId); }
+  resize() {
+    if (!this.canvas) return;
+    this.canvas.width  = this.canvas.offsetWidth  || 600;
+    this.canvas.height = this.canvas.offsetHeight || 100;
+    const needed = Math.ceil(this.canvas.width / this.pixelsPerPoint) + 10;
+    while (this.buffer.length < needed) this.buffer.push(0);
+    if (this.buffer.length > needed + 50) this.buffer = this.buffer.slice(this.buffer.length - needed);
+  }
+  setHeartRate(bpm) {
+    // Adjust template speed: higher bpm = faster scroll
+    this.frameInterval = Math.max(8, 1000 / (bpm * 0.9));
+  }
+  _nextPoint() {
+    const t = ECG_TEMPLATE[this.templateIdx % ECG_TEMPLATE.length];
+    this.templateIdx++;
+    return t + (Math.random() - 0.5) * 0.015; // tiny noise
+  }
+  _loop(timestamp) {
+    if (!this.running) return;
+    this.animId = requestAnimationFrame(t => this._loop(t));
+    if (timestamp - this.lastFrameTime < this.frameInterval) return;
+    this.lastFrameTime = timestamp;
+
+    const needed = Math.ceil(this.canvas.width / this.pixelsPerPoint) + 10;
+    this.buffer.push(this._nextPoint());
+    if (this.buffer.length > needed + 50) this.buffer.shift();
+
+    this._draw();
+  }
+  _draw() {
+    const { canvas, ctx, buffer, pixelsPerPoint, color } = this;
+    const w = canvas.width, h = canvas.height;
+    ctx.clearRect(0, 0, w, h);
+
+    // Grid lines
+    ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+    ctx.lineWidth = 1;
+    for (let x = 0; x < w; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
+    for (let y = 0; y < h; y += 20) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
+
+    // Waveform
+    const baseline = h * 0.62;
+    const amplitude = h * 0.36;
+    const visiblePts = Math.ceil(w / pixelsPerPoint) + 2;
+    const start = Math.max(0, buffer.length - visiblePts);
+
+    ctx.beginPath();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1.8;
+    ctx.shadowBlur = 6;
+    ctx.shadowColor = color;
+
+    for (let i = 0; i < visiblePts && (start + i) < buffer.length; i++) {
+      const x = i * pixelsPerPoint;
+      const y = baseline - buffer[start + i] * amplitude;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // Trailing glow fade
+    const grad = ctx.createLinearGradient(0, 0, w, 0);
+    grad.addColorStop(0, '#0d1117');
+    grad.addColorStop(0.08, 'transparent');
+    grad.addColorStop(0.92, 'transparent');
+    grad.addColorStop(1, '#0d1117');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, w, h);
+  }
+}
+
+/* ===========================  BIOSENSOR SIMULATION  =========================== */
+function getRandVital(cfg, spike = false) {
+  const { base, range, normal } = cfg;
+  let val = base + (Math.random() - 0.5) * range * 2;
+  if (spike) {
+    // Push outside normal range
+    const dir = Math.random() > 0.5 ? 1 : -1;
+    val = dir > 0 ? normal[1] + Math.random() * range * 1.5 : normal[0] - Math.random() * range * 1.2;
+  }
+  return parseFloat(val.toFixed(cfg.unit === '°F' ? 1 : 0));
+}
+
+function getVitalStatus(val, cfg) {
+  const lo = cfg.normal[0], hi = cfg.normal[1];
+  if (val < lo * 0.9 || val > hi * 1.12) return 'alert';
+  if (val < lo * 0.97 || val > hi * 1.05) return 'caution';
+  return 'normal';
+}
+
+function getStatusPercent(val, cfg) {
+  const lo = cfg.normal[0], hi = cfg.normal[1];
+  return Math.min(100, Math.max(5, ((val - lo) / (hi - lo)) * 100));
+}
+
+function simulateVitals(patientId) {
+  const pt = PATIENTS[patientId];
+  const vitals = {};
+  VITAL_KEYS.forEach(k => {
+    vitals[k] = getRandVital(pt.vitals[k], spikeMode && k !== 'temperature' && k !== 'respRate');
+  });
+  return vitals;
+}
+
+/* ===========================  VITAL CARD RENDERING  =========================== */
+function buildVitalCards(containerId, prefix) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML = '';
+  const pt = PATIENTS[activePatientId];
+  VITAL_KEYS.forEach(k => {
+    const cfg = pt.vitals[k];
+    const card = document.createElement('div');
+    card.className = 'vital-card';
+    card.id = `vc-${prefix}-${k}`;
+    card.innerHTML = `
+      <div class="vital-card-icon ${VITAL_ICON_CLASS[k]}">${VITAL_ICONS[k]}</div>
+      <div class="vital-body">
+        <div class="vital-reading">
+          <span class="vital-value" id="vv-${prefix}-${k}">--</span>
+          <span class="vital-unit">${cfg.unit}</span>
+        </div>
+        <p class="vital-label">${cfg.label}</p>
+        <div class="vital-status-bar">
+          <div class="vital-status-fill vsf-normal" id="vsf-${prefix}-${k}" style="width:50%"></div>
+        </div>
+        <div class="vital-sparkline" id="vsp-${prefix}-${k}"></div>
+      </div>
+      <span class="vital-trend-badge vtb-normal" id="vtb-${prefix}-${k}">Normal</span>
+    `;
+    container.appendChild(card);
+  });
+}
+
+function updateVitalCards(prefix, vitals, patientId) {
+  const pt = PATIENTS[patientId];
+  VITAL_KEYS.forEach(k => {
+    const val = vitals[k];
+    if (val === undefined) return;
+    const cfg = pt.vitals[k];
+    const status = getVitalStatus(val, cfg);
+    const pct = getStatusPercent(val, cfg);
+
+    // Value
+    const valEl = document.getElementById(`vv-${prefix}-${k}`);
+    if (valEl) {
+      valEl.textContent = val;
+      valEl.className = 'vital-value' + (status === 'alert' ? ' flash-alert' : '');
+    }
+
+    // Status fill bar
+    const sfEl = document.getElementById(`vsf-${prefix}-${k}`);
+    if (sfEl) {
+      sfEl.style.width = pct + '%';
+      sfEl.className = `vital-status-fill vsf-${status}`;
+    }
+
+    // Trend badge
+    const tbEl = document.getElementById(`vtb-${prefix}-${k}`);
+    if (tbEl) {
+      const labels = { normal: 'Normal', caution: 'Caution', alert: '⚠ Alert' };
+      tbEl.textContent = labels[status];
+      tbEl.className = `vital-trend-badge vtb-${status}`;
+    }
+
+    // Card border
+    const card = document.getElementById(`vc-${prefix}-${k}`);
+    if (card) {
+      card.classList.toggle('vc-alert',   status === 'alert');
+      card.classList.toggle('vc-caution', status === 'caution');
+    }
+
+    // Sparkline
+    updateSparkline(`vsp-${prefix}-${k}`, vitalsHistory[k] || [], status);
+  });
+}
+
+function updateSparkline(containerId, history, status) {
+  const el = document.getElementById(containerId);
+  if (!el || history.length < 2) return;
+  const bars = el.children;
+  const maxBars = 12;
+  const recent = history.slice(-maxBars);
+  // Rebuild if needed
+  if (bars.length !== recent.length) {
+    el.innerHTML = recent.map(() => `<div class="vital-spark-bar"></div>`).join('');
+  }
+  const min = Math.min(...recent), max = Math.max(...recent);
+  const range = max - min || 1;
+  Array.from(el.children).forEach((bar, i) => {
+    const h = Math.max(20, ((recent[i] - min) / range) * 100);
+    bar.style.height = h + '%';
+    bar.className = `vital-spark-bar spark-${i === recent.length - 1 ? status : 'normal'}`;
+  });
+}
+
+/* ===========================  MAIN SIMULATION LOOP  =========================== */
+let ecgDoctor  = null;
+let ecgPatient = null;
+
+function startSimulation() {
+  // ECG renderers
+  ecgDoctor  = new ECGRenderer('ecgDoctor');
+  ecgPatient = new ECGRenderer('ecgPatient');
+  ecgDoctor.start();
+  ecgPatient.start();
+
+  // Build vital card containers
+  buildVitalCards('drVitalsGrid', 'dr');
+  buildVitalCards('ptVitalsGrid', 'pt');
+
+  // Init history buffers
+  VITAL_KEYS.forEach(k => { vitalsHistory[k] = []; });
+
+  // First tick immediately
+  tickVitals();
+
+  // Periodic ticks every 2s
+  setInterval(tickVitals, 2000);
+  setInterval(() => {
+    updateCountdown = Math.max(0, updateCountdown - 1);
+    const el = document.getElementById('drCountdown');
+    if (el) el.textContent = updateCountdown;
+  }, 1000);
+
+  // Occasional spike events (every ~30s)
+  setInterval(() => {
+    spikeMode = true;
+    spikeTick = 0;
+    setTimeout(() => { spikeMode = false; }, 6000);
+  }, 30000 + Math.random() * 20000);
+}
+
+function tickVitals() {
+  currentVitals = simulateVitals(activePatientId);
+  const pt = PATIENTS[activePatientId];
+
+  // Store history
+  VITAL_KEYS.forEach(k => {
+    vitalsHistory[k].push(currentVitals[k]);
+    if (vitalsHistory[k].length > 30) vitalsHistory[k].shift();
+  });
+
+  // Update ECG bpm displays
+  const bpm = currentVitals.heartRate;
+  const bpmDr = document.getElementById('ecgBpmDr');
+  const bpmPt = document.getElementById('ecgBpmPt');
+  if (bpmDr) bpmDr.textContent = bpm;
+  if (bpmPt) bpmPt.textContent = bpm;
+  if (ecgDoctor)  ecgDoctor.setHeartRate(bpm);
+  if (ecgPatient) ecgPatient.setHeartRate(bpm);
+
+  // Update cards
+  updateVitalCards('dr', currentVitals, activePatientId);
+  updateVitalCards('pt', currentVitals, activePatientId);
+
+  // Check for alerts
+  checkAlerts(currentVitals, pt);
+
+  // Patient health banner
+  updatePatientBanner(currentVitals, pt);
+
+  // AI suggestions (refresh every 5 ticks)
+  if (vitalsHistory.heartRate.length % 5 === 0) updateAISuggestions();
+
+  // Last updated
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  const el = document.getElementById('drLastUpdated');
+  if (el) el.textContent = timeStr;
+  updateCountdown = 2;
+}
+
+function checkAlerts(vitals, pt) {
+  const alertItems = [];
+  VITAL_KEYS.forEach(k => {
+    const s = getVitalStatus(vitals[k], pt.vitals[k]);
+    if (s === 'alert') alertItems.push(`${pt.vitals[k].label}: ${vitals[k]} ${pt.vitals[k].unit}`);
+  });
+
+  const banner = document.getElementById('drAlertBanner');
+  const bannerText = document.getElementById('drAlertText');
+  if (banner && bannerText) {
+    if (alertItems.length > 0) {
+      bannerText.textContent = `⚠ Alert — ${pt.name}: ${alertItems.join(' · ')}`;
+      banner.classList.remove('hidden');
+      alertCount = alertItems.length;
+    }
+  }
+  const badge = document.getElementById('alertBadge');
+  if (badge) badge.textContent = alertItems.length;
+}
+
+function updatePatientBanner(vitals, pt) {
+  const banner = document.getElementById('ptHealthBanner');
+  const title  = document.getElementById('ptBannerTitle');
+  const sub    = document.getElementById('ptBannerSub');
+  if (!banner) return;
+
+  let alertCount = 0, cautionCount = 0;
+  VITAL_KEYS.forEach(k => {
+    const s = getVitalStatus(vitals[k], pt.vitals[k]);
+    if (s === 'alert')   alertCount++;
+    if (s === 'caution') cautionCount++;
+  });
+
+  banner.className = 'health-banner';
+  if (alertCount > 0) {
+    banner.classList.add('hb-alert');
+    title.textContent = `${alertCount} vital${alertCount > 1 ? 's' : ''} outside safe range`;
+    sub.textContent = 'Your care team has been notified. Please rest and follow your doctor\'s instructions.';
+  } else if (cautionCount > 0) {
+    banner.classList.add('hb-caution');
+    title.textContent = 'Some vitals slightly elevated — monitoring closely';
+    sub.textContent = 'Your biosensor is streaming data to Dr. Reynolds. Stay calm and follow your care plan.';
+  } else {
+    banner.classList.add('hb-normal');
+    title.textContent = 'Your vitals look good today';
+    sub.textContent = 'All readings are within your normal range. Keep up the good work!';
+  }
+}
+
+/* ===========================  AI SUGGESTIONS  =========================== */
+function updateAISuggestions() {
+  const container = document.getElementById('aiSuggestions');
+  if (!container || !Object.keys(currentVitals).length) return;
+
+  const pt = PATIENTS[activePatientId];
+  const v  = currentVitals;
+  const suggestions = [];
+
+  if (v.heartRate > 100)
+    suggestions.push({ type: 'ai-critical', title: 'Tachycardia Detected', detail: `Resting heart rate of ${v.heartRate} bpm exceeds 100 bpm threshold. Biosensor data shows this is a recurring pattern — particularly in morning hours. Consider ECG follow-up and reviewing Metoprolol dosage.` });
+  else if (v.heartRate > 90)
+    suggestions.push({ type: 'ai-warning', title: 'Mildly Elevated Resting HR', detail: `Heart rate averaging ${v.heartRate} bpm. While not tachycardic, this is above optimal resting range for your age. Practice deep-breathing exercises before sleep.` });
+  else
+    suggestions.push({ type: 'ai-positive', title: 'Heart Rate Within Target', detail: `Current HR of ${v.heartRate} bpm is within the normal range. Continue current medication regimen and activity level.` });
+
+  if (v.systolic > 140 || v.diastolic > 90)
+    suggestions.push({ type: 'ai-critical', title: 'Hypertensive Reading', detail: `Blood pressure ${v.systolic}/${v.diastolic} mmHg exceeds Stage 1 hypertension threshold. Limit sodium intake, avoid caffeine, and contact your doctor if it exceeds 160/100 mmHg.` });
+  else if (v.systolic > 130)
+    suggestions.push({ type: 'ai-warning', title: 'Elevated Blood Pressure', detail: `BP ${v.systolic}/${v.diastolic} mmHg is in the pre-hypertensive range. Monitor closely throughout the day and note any symptoms.` });
+
+  if (v.spo2 < 94)
+    suggestions.push({ type: 'ai-critical', title: 'Low Blood Oxygen (SpO₂)', detail: `SpO₂ at ${v.spo2}% is below the safe threshold of 94%. Take slow, deep breaths. If below 92%, seek immediate medical attention.` });
+  else if (v.spo2 < 96)
+    suggestions.push({ type: 'ai-warning', title: 'SpO₂ Slightly Below Optimal', detail: `Oxygen saturation at ${v.spo2}%. This can occur due to shallow breathing or mild congestion. Try deep breathing exercises.` });
+
+  if (v.glucose > 180)
+    suggestions.push({ type: 'ai-critical', title: 'High Blood Glucose', detail: `Glucose level of ${v.glucose} mg/dL indicates hyperglycemia. Ensure Metformin dosing is on schedule and avoid high-carbohydrate foods. Hydrate well.` });
+  else if (v.glucose > 140)
+    suggestions.push({ type: 'ai-warning', title: 'Blood Glucose Above Target', detail: `Glucose at ${v.glucose} mg/dL is above your target range of 70–140 mg/dL. Consider a 15-minute light walk to help lower levels.` });
+
+  if (suggestions.length === 0)
+    suggestions.push({ type: 'ai-positive', title: 'All Vitals in Normal Range', detail: 'Your biosensor readings are currently within expected parameters. Continue your current care plan and medications as prescribed.' });
+
+  container.innerHTML = suggestions.map(s => `
+    <div class="ai-card ${s.type}">
+      <p class="ai-card-title">${s.title}</p>
+      <p class="ai-card-detail">${s.detail}</p>
+    </div>
+  `).join('');
+}
+
+/* ===========================  PATIENT RECORDS  =========================== */
+function renderPatientDetail(patientId) {
+  const pt = PATIENTS[patientId];
+  const container = document.getElementById('patientDetailPanel');
+  if (!container || !pt) return;
+
+  container.innerHTML = `
+    <div class="pdp-header">
+      <div class="pdp-avatar" style="background:${pt.avatarBg};color:${pt.avatarColor};width:64px;height:64px;border-radius:50%;font-size:1.2rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">${pt.initials}</div>
+      <div>
+        <p class="pdp-name">${pt.name}</p>
+        <p class="pdp-meta">Age ${pt.age} · ${pt.gender} · DOB: ${pt.dob} · Blood Type: ${pt.bloodType}</p>
+        <div class="pdp-tags">
+          <span class="pdp-tag">${pt.department}</span>
+          <span class="pdp-tag">${pt.physician}</span>
+          <span class="pli-badge ${pt.statusClass}">${pt.status}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="pdp-grid">
+      <div class="pdp-section">
+        <p class="pdp-section-title">Demographics</p>
+        <div class="pdp-row"><span class="pdp-row-label">Height</span><span class="pdp-row-val">${pt.height}</span></div>
+        <div class="pdp-row"><span class="pdp-row-label">Weight</span><span class="pdp-row-val">${pt.weight}</span></div>
+        <div class="pdp-row"><span class="pdp-row-label">Phone</span><span class="pdp-row-val">${pt.phone}</span></div>
+        <div class="pdp-row"><span class="pdp-row-label">Insurance</span><span class="pdp-row-val">${pt.insurance}</span></div>
+        <div class="pdp-row"><span class="pdp-row-label">Emergency</span><span class="pdp-row-val" style="text-align:right;max-width:60%">${pt.emergency}</span></div>
+        <div class="pdp-row"><span class="pdp-row-label">Biosensor</span><span class="pdp-row-val" style="font-size:.72rem">${pt.biosensor}</span></div>
+      </div>
+      <div class="pdp-section">
+        <p class="pdp-section-title">Active Conditions</p>
+        <ul class="condition-list">
+          ${pt.conditions.map(c => `<li class="condition-item"><span class="condition-dot"></span>${c}</li>`).join('')}
+        </ul>
+        <p class="pdp-section-title" style="margin-top:14px">Allergies</p>
+        <ul class="condition-list">
+          ${pt.allergies.map(a => `<li class="condition-item"><span class="condition-dot" style="background:#f59e0b"></span>${a}</li>`).join('')}
+        </ul>
+      </div>
+    </div>
+
+    <div class="pdp-section" style="margin-bottom:16px">
+      <p class="pdp-section-title">Current Medications</p>
+      <ul class="medication-list">
+        ${pt.medications.map(m => `
+          <li class="medication-item">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <span class="med-name">${m.name}</span>
+              <span class="med-dose">${m.dose}</span>
+            </div>
+            <p class="med-note">${m.note}</p>
+          </li>
+        `).join('')}
+      </ul>
+    </div>
+
+    <div class="pdp-section" style="margin-bottom:16px">
+      <p class="pdp-section-title">Medical History</p>
+      <p style="font-size:.83rem;color:#4b5563;line-height:1.6">${pt.history}</p>
+    </div>
+
+    <div class="pdp-section" style="background:#fff8f8;border:1px solid #fecaca">
+      <p class="pdp-section-title" style="color:#b91c1c">Physician Notes</p>
+      <p style="font-size:.83rem;color:#374151;line-height:1.6">${pt.notes}</p>
+    </div>
+  `;
+}
+
+/* ===========================  TRENDS CHARTS  =========================== */
+function generateTrendData(patientId) {
+  const pt = PATIENTS[patientId];
+  const hours = Array.from({ length: 24 }, (_, i) => {
+    const h = (new Date().getHours() - 23 + i + 24) % 24;
+    return `${h.toString().padStart(2,'0')}:00`;
+  });
+
+  const gen = (cfg, hasSpikeAt = []) => hours.map((_, i) => {
+    const isSpike = hasSpikeAt.includes(i);
+    return getRandVital(cfg, isSpike);
+  });
+
+  return {
+    labels: hours,
+    heartRate: gen(pt.vitals.heartRate, [5, 6, 7]),
+    systolic:  gen(pt.vitals.systolic,  [6, 7, 8]),
+    diastolic: gen(pt.vitals.diastolic, [6, 7]),
+    spo2:      gen(pt.vitals.spo2,      [1, 2]),
+    respRate:  gen(pt.vitals.respRate,  []),
+  };
+}
+
+function buildTrendCharts(patientId) {
+  // Destroy existing
+  Object.values(trendCharts).forEach(c => c.destroy());
+  trendCharts = {};
+
+  const data = generateTrendData(patientId);
+  const tooltip = {
+    backgroundColor: '#1f2937', titleColor: '#f9fafb',
+    bodyColor: '#d1d5db', padding: 10, cornerRadius: 8,
+  };
+  const gridY = { color: '#f3f4f6', drawBorder: false };
+  const gridX = { display: false };
+  const tickStyle = { color: '#9ca3af', font: { size: 10 } };
+
+  trendCharts.hr = new Chart(document.getElementById('hrTrendChart'), {
+    type: 'line',
+    data: {
+      labels: data.labels,
+      datasets: [{
+        label: 'Heart Rate (bpm)',
+        data: data.heartRate,
+        borderColor: '#dc2626', backgroundColor: 'rgba(220,38,38,0.07)',
+        borderWidth: 2, tension: 0.4, pointRadius: 2, fill: true,
+        pointBackgroundColor: data.heartRate.map(v => v > PATIENTS[patientId].vitals.heartRate.normal[1] ? '#dc2626' : 'transparent'),
+        pointRadius: data.heartRate.map(v => v > PATIENTS[patientId].vitals.heartRate.normal[1] ? 5 : 0),
+      }]
+    },
+    options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false}, tooltip },
+      scales: { x:{ grid:gridX, ticks:{...tickStyle, maxTicksLimit:8} }, y:{ grid:gridY, ticks:{...tickStyle, maxTicksLimit:5} } } }
+  });
+
+  trendCharts.bp = new Chart(document.getElementById('bpTrendChart'), {
+    type: 'line',
+    data: {
+      labels: data.labels,
+      datasets: [
+        { label: 'Systolic',  data: data.systolic,  borderColor:'#dc2626', backgroundColor:'rgba(220,38,38,.05)', borderWidth:2, tension:0.4, pointRadius:2, fill:false },
+        { label: 'Diastolic', data: data.diastolic, borderColor:'#f97316', backgroundColor:'rgba(249,115,22,.05)', borderWidth:2, tension:0.4, pointRadius:2, fill:false },
+      ]
+    },
+    options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false}, tooltip },
+      scales: { x:{ grid:gridX, ticks:{...tickStyle, maxTicksLimit:8} }, y:{ grid:gridY, ticks:{...tickStyle, maxTicksLimit:5} } } }
+  });
+
+  trendCharts.spo2 = new Chart(document.getElementById('spo2TrendChart'), {
+    type: 'line',
+    data: {
+      labels: data.labels,
+      datasets: [
+        { label: 'SpO₂ (%)', data: data.spo2, borderColor:'#6366f1', backgroundColor:'transparent', borderWidth:2, tension:0.4, pointRadius:2 },
+        { label: 'Resp. Rate (/min)', data: data.respRate, borderColor:'#0ea5e9', backgroundColor:'transparent', borderWidth:2, tension:0.4, pointRadius:2 },
+      ]
+    },
+    options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false}, tooltip },
+      scales: { x:{ grid:gridX, ticks:{...tickStyle, maxTicksLimit:8} }, y:{ grid:gridY, ticks:{...tickStyle, maxTicksLimit:5} } } }
+  });
+
+  renderEvents(data, patientId);
+}
+
+function renderEvents(data, patientId) {
+  const pt = PATIENTS[patientId];
+  const list = document.getElementById('eventsList');
+  if (!list) return;
+
+  const events = [];
+  data.heartRate.forEach((v, i) => {
+    if (v > pt.vitals.heartRate.normal[1])
+      events.push({ type: 'ev-critical', time: data.labels[i], title: `HR Spike: ${v} bpm`, detail: `Normal: ${pt.vitals.heartRate.normal[0]}–${pt.vitals.heartRate.normal[1]} bpm` });
+    else if (v < pt.vitals.heartRate.normal[0])
+      events.push({ type: 'ev-warning', time: data.labels[i], title: `Bradycardia: ${v} bpm`, detail: `Heart rate below 60 bpm` });
+  });
+  data.systolic.forEach((v, i) => {
+    if (v > pt.vitals.systolic.normal[1])
+      events.push({ type: 'ev-critical', time: data.labels[i], title: `BP Spike: ${v}/${data.diastolic[i]} mmHg`, detail: `Hypertensive reading detected` });
+  });
+  data.spo2.forEach((v, i) => {
+    if (v < pt.vitals.spo2.normal[0])
+      events.push({ type: 'ev-warning', time: data.labels[i], title: `Low SpO₂: ${v}%`, detail: `Below safe threshold of ${pt.vitals.spo2.normal[0]}%` });
+  });
+
+  events.sort((a, b) => a.time.localeCompare(b.time));
+
+  if (events.length === 0) {
+    list.innerHTML = `<li style="font-size:.82rem;color:#9ca3af;padding:12px 0;text-align:center">No anomalies detected in the last 24 hours.</li>`;
+    return;
+  }
+  list.innerHTML = events.map(e => `
+    <li class="event-item ${e.type}">
+      <p class="event-time">${e.time}</p>
+      <p class="event-title">${e.title}</p>
+      <p class="event-detail">${e.detail}</p>
+    </li>
+  `).join('');
+}
+
+/* ===========================  MESSAGING  =========================== */
+function renderMessages(threadId, perspective) {
+  const thread = document.getElementById(threadId);
+  if (!thread) return;
+  thread.innerHTML = MESSAGES.map(m => {
+    const isMine = m.from === perspective;
+    return `
+      <div class="msg-bubble-wrap ${isMine ? 'mine' : 'theirs'}">
+        <div class="msg-bubble">${m.text}</div>
+        <p class="msg-meta">${m.time}</p>
+      </div>
+    `;
+  }).join('');
+  thread.scrollTop = thread.scrollHeight;
+}
+
+function setupMessaging() {
+  renderMessages('drMsgThread', 'doctor');
+  renderMessages('ptMsgThread', 'patient');
+
+  // Doctor send
+  const drInput = document.getElementById('drMsgInput');
+  const drBtn   = document.getElementById('drSendBtn');
+  function sendDrMsg() {
+    const text = drInput.value.trim();
+    if (!text) return;
+    MESSAGES.push({ id: Date.now(), from: 'doctor', text, time: new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'}), date:'Today' });
+    drInput.value = '';
+    renderMessages('drMsgThread', 'doctor');
+    renderMessages('ptMsgThread', 'patient');
+    showToast('Message sent to Maria Lopez', 'success');
+  }
+  drBtn.addEventListener('click', sendDrMsg);
+  drInput.addEventListener('keydown', e => { if (e.key === 'Enter') sendDrMsg(); });
+
+  // Patient send
+  const ptInput = document.getElementById('ptMsgInput');
+  const ptBtn   = document.getElementById('ptSendBtn');
+  function sendPtMsg() {
+    const text = ptInput.value.trim();
+    if (!text) return;
+    MESSAGES.push({ id: Date.now(), from: 'patient', text, time: new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'}), date:'Today' });
+    ptInput.value = '';
+    renderMessages('drMsgThread', 'doctor');
+    renderMessages('ptMsgThread', 'patient');
+    showToast('Message sent to Dr. Reynolds', 'success');
+  }
+  ptBtn.addEventListener('click', sendPtMsg);
+  ptInput.addEventListener('keydown', e => { if (e.key === 'Enter') sendPtMsg(); });
+}
+
+/* ===========================  LEAFLET MAP  =========================== */
+const SPECIALISTS = [
+  { name: 'Dr. Amanda Foster', specialty: 'Cardiology', lat: 37.7760, lng: -122.4148, dist: '0.3 mi', rating: '4.9 ★', accepting: true },
+  { name: 'Dr. Robert Kim',    specialty: 'Cardiology', lat: 37.7682, lng: -122.4138, dist: '0.8 mi', rating: '4.7 ★', accepting: true },
+  { name: 'Dr. Lisa Nguyen',   specialty: 'Endocrinology', lat: 37.7735, lng: -122.4250, dist: '0.5 mi', rating: '4.8 ★', accepting: true },
+  { name: 'Dr. James Patel',   specialty: 'Internal Medicine', lat: 37.7762, lng: -122.4200, dist: '0.2 mi', rating: '4.6 ★', accepting: false },
+  { name: 'Dr. Sarah Chen',    specialty: 'Neurology', lat: 37.7802, lng: -122.4228, dist: '1.1 mi', rating: '4.9 ★', accepting: true },
+  { name: 'Dr. Michael Torres',specialty: 'Pulmonology', lat: 37.7700, lng: -122.4170, dist: '0.7 mi', rating: '4.5 ★', accepting: true },
+  { name: 'Dr. Jennifer Walsh', specialty: 'Cardiology', lat: 37.7850, lng: -122.4295, dist: '1.4 mi', rating: '4.8 ★', accepting: true },
+  { name: 'Dr. David Kim',     specialty: 'General Practice', lat: 37.7747, lng: -122.4188, dist: '0.1 mi', rating: '4.4 ★', accepting: true },
+];
+
+const SPECIALTY_COLORS = {
+  'Cardiology': '#dc2626', 'Endocrinology': '#7c3aed', 'Internal Medicine': '#0284c7',
+  'Neurology': '#059669', 'Pulmonology': '#d97706', 'General Practice': '#374151'
+};
+
+function initMap() {
+  if (mapInitialized || !document.getElementById('specialistsMap')) return;
+  mapInitialized = true;
+
+  leafletMap = L.map('specialistsMap').setView([37.7749, -122.4194], 14);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors', maxZoom: 19
+  }).addTo(leafletMap);
+
+  // Patient marker
+  const patientIcon = L.divIcon({
+    html: `<div style="width:20px;height:20px;background:#dc2626;border:3px solid #fff;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,.3)"></div>`,
+    className: '', iconAnchor: [10, 10]
+  });
+  L.marker([37.7749, -122.4194], { icon: patientIcon })
+    .bindPopup('<b>Your Location</b><br>Maria Lopez')
+    .addTo(leafletMap);
+
+  // Doctor markers
+  SPECIALISTS.forEach(dr => {
+    const color = SPECIALTY_COLORS[dr.specialty] || '#374151';
+    const icon = L.divIcon({
+      html: `<div style="width:32px;height:32px;background:${color};border:2px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:700;box-shadow:0 2px 6px rgba(0,0,0,.25)">${dr.name.split(' ')[1][0]}</div>`,
+      className: '', iconAnchor: [16, 16]
+    });
+    L.marker([dr.lat, dr.lng], { icon })
+      .bindPopup(`<b>${dr.name}</b><br>${dr.specialty}<br>${dr.rating} · ${dr.dist}<br>${dr.accepting ? '<span style="color:green">✓ Accepting patients</span>' : '<span style="color:gray">Not accepting</span>'}`)
+      .addTo(leafletMap);
+  });
+
+  // Doctor list panel
+  renderDoctorList('all');
+
+  // Specialty filter
+  document.getElementById('specialtyFilter')?.addEventListener('change', e => {
+    renderDoctorList(e.target.value);
+  });
+}
+
+function renderDoctorList(filter) {
+  const container = document.getElementById('mapDoctorList');
+  if (!container) return;
+  const filtered = filter === 'all' ? SPECIALISTS : SPECIALISTS.filter(d => d.specialty.toLowerCase() === filter);
+
+  container.innerHTML = `<h3>${filtered.length} Specialists Found</h3>` + filtered.map(dr => {
+    const color = SPECIALTY_COLORS[dr.specialty] || '#374151';
+    const initials = dr.name.split(' ').map(w => w[0]).join('').slice(0,2);
+    return `
+      <div class="doctor-card" onclick="showDoctorOnMap(${dr.lat},${dr.lng})">
+        <div class="dc-top">
+          <div class="dc-avatar" style="background:${color}15;color:${color}">${initials}</div>
+          <div>
+            <p class="dc-name">${dr.name}</p>
+            <p class="dc-specialty" style="color:${color}">${dr.specialty}</p>
+          </div>
+          <span class="dc-distance">${dr.dist}</span>
+        </div>
+        <div class="dc-meta">
+          <span class="dc-rating">${dr.rating}</span>
+          <span class="dc-status" style="${dr.accepting ? '' : 'color:#9ca3af'}">${dr.accepting ? '✓ Accepting patients' : 'Not accepting'}</span>
+        </div>
+        <button class="dc-book" onclick="event.stopPropagation();bookAppointment('${dr.name}')">Book Appointment</button>
+      </div>
+    `;
+  }).join('');
+}
+
+function showDoctorOnMap(lat, lng) {
+  if (leafletMap) leafletMap.setView([lat, lng], 15);
+}
+window.showDoctorOnMap = showDoctorOnMap;
+
+function bookAppointment(name) {
+  showToast(`Appointment request sent to ${name}`, 'success');
+}
+window.bookAppointment = bookAppointment;
+
+/* ===========================  NAVIGATION  =========================== */
+function showPage(pageId) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const page = document.getElementById('page-' + pageId);
+  if (page) page.classList.add('active');
+
+  // Active nav item (only in current portal's sidebar)
+  const activeSidebar = document.getElementById(currentPortal === 'doctor' ? 'doctorSidebar' : 'patientSidebar');
+  activeSidebar?.querySelectorAll('.nav-item').forEach(n => {
+    n.classList.toggle('active', n.dataset.page === pageId);
+  });
+
+  // Lazy inits
+  if (pageId === 'dp-trends') buildTrendCharts(document.getElementById('trendsPatientSelect')?.value || activePatientId);
+  if (pageId === 'pp-map') setTimeout(initMap, 50);
+  if (pageId === 'pp-health') updateAISuggestions();
+}
+
+function switchPortal(portal) {
+  currentPortal = portal;
+
+  // Toggle portal buttons
+  document.querySelectorAll('.portal-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.portal === portal);
+  });
+
+  // Toggle sidebars
+  document.getElementById('doctorSidebar').classList.toggle('sidebar-hidden', portal !== 'doctor');
+  document.getElementById('patientSidebar').classList.toggle('sidebar-hidden', portal !== 'patient');
+
+  // Update topbar user info
+  const avatar = document.getElementById('topbarAvatar');
+  const name   = document.getElementById('topbarName');
+  const role   = document.getElementById('topbarRole');
+  if (portal === 'doctor') {
+    if (avatar) avatar.textContent = 'DR';
+    if (name)   name.textContent   = 'Dr. Reynolds';
+    if (role)   role.textContent   = 'Chief Medical Officer';
+    showPage('dp-monitor');
+  } else {
+    if (avatar) avatar.textContent = 'ML';
+    if (name)   name.textContent   = 'Maria Lopez';
+    if (role)   role.textContent   = 'Patient · P-001';
+    showPage('pp-vitals');
+  }
+}
+
+/* ===========================  SIDEBAR TOGGLE  =========================== */
+document.getElementById('sidebarToggle')?.addEventListener('click', () => {
+  const activeSidebar = document.getElementById(currentPortal === 'doctor' ? 'doctorSidebar' : 'patientSidebar');
+  activeSidebar?.classList.toggle('collapsed');
+});
+
+/* ===========================  PORTAL TOGGLE  =========================== */
+document.getElementById('portalToggle')?.addEventListener('click', e => {
+  const btn = e.target.closest('.portal-btn');
+  if (btn?.dataset.portal) switchPortal(btn.dataset.portal);
+});
+
+/* ===========================  NAV ITEMS  =========================== */
+document.querySelectorAll('.nav-item[data-page]').forEach(item => {
+  item.addEventListener('click', e => { e.preventDefault(); showPage(item.dataset.page); });
+});
+
+/* ===========================  PATIENT LIST (records page)  =========================== */
+document.querySelectorAll('.patient-list-item').forEach(item => {
+  item.addEventListener('click', () => {
+    document.querySelectorAll('.patient-list-item').forEach(i => i.classList.remove('active'));
+    item.classList.add('active');
+    renderPatientDetail(item.dataset.patientId);
+  });
+});
+
+/* ===========================  PATIENT SELECTOR (monitor & trends)  =========================== */
+document.getElementById('patientSelect')?.addEventListener('change', e => {
+  activePatientId = e.target.value;
+  buildVitalCards('drVitalsGrid', 'dr');
+  VITAL_KEYS.forEach(k => { vitalsHistory[k] = []; });
+  const pt = PATIENTS[activePatientId];
+  const sub = document.getElementById('monitorSubtitle');
+  if (sub) sub.textContent = `Streaming live biosensor data — ${pt.name} · ${pt.biosensor}`;
+  const apbName = document.getElementById('apbName');
+  if (apbName) apbName.textContent = pt.name;
+});
+
+document.getElementById('trendsPatientSelect')?.addEventListener('change', e => {
+  buildTrendCharts(e.target.value);
+});
+
+/* ===========================  TOAST  =========================== */
+function showToast(message, type = 'info') {
+  const tc = document.getElementById('toastContainer');
+  if (!tc) return;
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  toast.textContent = message;
+  tc.appendChild(toast);
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => toast.classList.add('visible'));
+  });
+  setTimeout(() => {
+    toast.classList.remove('visible');
+    setTimeout(() => toast.remove(), 350);
+  }, 3000);
+}
+
+/* ===========================  INIT  =========================== */
+window.addEventListener('DOMContentLoaded', () => {
+  Chart.defaults.font.family = "'Inter', sans-serif";
+  Chart.defaults.font.size   = 12;
+  Chart.defaults.color       = '#6b7280';
+
+  startSimulation();
+  renderPatientDetail('P001');
+  setupMessaging();
+  updateAISuggestions();
+
+  // Handle canvas resize
+  window.addEventListener('resize', () => {
+    ecgDoctor?.resize();
+    ecgPatient?.resize();
+  });
+});
