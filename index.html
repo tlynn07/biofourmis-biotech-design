@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MediCore — Biosensor Portal</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ===== TOP BAR ===== -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="logo">
+        <svg class="logo-icon" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#dc2626"/><path d="M16 7v18M7 16h18" stroke="white" stroke-width="3.5" stroke-linecap="round"/></svg>
+        <span class="logo-name">MediCore</span>
+        <span class="logo-tag">Biosensor Portal</span>
+      </div>
+    </div>
+
+    <div class="topbar-center">
+      <div class="portal-toggle" id="portalToggle">
+        <button class="portal-btn active" data-portal="doctor">
+          <svg viewBox="0 0 20 20" fill="none"><path d="M10 2a4 4 0 100 8 4 4 0 000-8zm0 10c-4.42 0-8 2.02-8 4.5V18h16v-1.5c0-2.48-3.58-4.5-8-4.5z" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+          Doctor Portal
+        </button>
+        <button class="portal-btn" data-portal="patient">
+          <svg viewBox="0 0 20 20" fill="none"><path d="M10 10a4 4 0 100-8 4 4 0 000 8zm0 2c-5.33 0-8 2.67-8 4v1h16v-1c0-1.33-2.67-4-8-4z" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+          Patient Portal
+        </button>
+      </div>
+    </div>
+
+    <div class="topbar-right">
+      <div class="live-indicator" id="liveIndicator">
+        <span class="live-dot"></span>
+        <span>LIVE</span>
+      </div>
+      <div class="topbar-divider"></div>
+      <button class="topbar-btn" id="alertsBtn" aria-label="Alerts">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="badge" id="alertBadge">0</span>
+      </button>
+      <div class="topbar-divider"></div>
+      <div class="user-menu" id="userMenuEl">
+        <div class="user-avatar" id="topbarAvatar">DR</div>
+        <div class="user-info">
+          <span class="user-name" id="topbarName">Dr. Reynolds</span>
+          <span class="user-role" id="topbarRole">Chief Medical Officer</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===== LAYOUT ===== -->
+  <div class="layout" id="layout">
+
+    <!-- ===== DOCTOR SIDEBAR ===== -->
+    <nav class="sidebar" id="doctorSidebar">
+      <div class="sidebar-patient-badge" id="activePtBadge">
+        <div class="apb-dot"></div>
+        <div>
+          <p class="apb-name" id="apbName">Maria Lopez</p>
+          <p class="apb-label">Monitoring · P-001</p>
+        </div>
+        <span class="apb-live">LIVE</span>
+      </div>
+      <div class="sidebar-section">
+        <p class="sidebar-label">Doctor Portal</p>
+        <a href="#" class="nav-item active" data-page="dp-monitor">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M22 12h-4l-3 9L9 3l-3 9H2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>Live Monitor</span>
+          <span class="nav-live-dot"></span>
+        </a>
+        <a href="#" class="nav-item" data-page="dp-patients">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="1.8"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          <span>Patient Records</span>
+          <span class="nav-pill">3</span>
+        </a>
+        <a href="#" class="nav-item" data-page="dp-trends">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M3 3v18h18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M7 16l4-6 4 4 4-8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>Trends &amp; Analytics</span>
+        </a>
+        <a href="#" class="nav-item" data-page="dp-messages">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>Messages</span>
+          <span class="nav-pill nav-pill-red">3</span>
+        </a>
+      </div>
+      <div class="sidebar-footer">
+        <div class="system-status">
+          <span class="status-dot"></span>
+          <div><p class="status-title">Biosensor Connected</p><p class="status-sub">MediCore Band Pro · SN:4821</p></div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- ===== PATIENT SIDEBAR ===== -->
+    <nav class="sidebar sidebar-hidden" id="patientSidebar">
+      <div class="sidebar-patient-badge" style="background:linear-gradient(135deg,#fef2f2,#fff)">
+        <div class="apb-dot"></div>
+        <div>
+          <p class="apb-name">Maria Lopez</p>
+          <p class="apb-label">Your Biosensor · Active</p>
+        </div>
+        <span class="apb-live">LIVE</span>
+      </div>
+      <div class="sidebar-section">
+        <p class="sidebar-label">Patient Portal</p>
+        <a href="#" class="nav-item active" data-page="pp-vitals">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M22 12h-4l-3 9L9 3l-3 9H2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>My Vitals</span>
+          <span class="nav-live-dot"></span>
+        </a>
+        <a href="#" class="nav-item" data-page="pp-map">
+          <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="11" r="3" stroke="currentColor" stroke-width="1.8"/><path d="M12 2a9 9 0 00-9 9c0 6.075 9 13 9 13s9-6.925 9-13a9 9 0 00-9-9z" stroke="currentColor" stroke-width="1.8"/></svg>
+          <span>Find Specialists</span>
+        </a>
+        <a href="#" class="nav-item" data-page="pp-health">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>My Health</span>
+        </a>
+        <a href="#" class="nav-item" data-page="pp-messages">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>Messages</span>
+          <span class="nav-pill nav-pill-red">3</span>
+        </a>
+      </div>
+      <div class="sidebar-footer">
+        <div class="system-status">
+          <span class="status-dot"></span>
+          <div><p class="status-title">Biosensor Active</p><p class="status-sub">Battery 84% · Signal Strong</p></div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <main class="main-content" id="mainContent">
+
+      <!-- =====================================================
+           DOCTOR PORTAL PAGES
+           ===================================================== -->
+
+      <!-- PAGE: Live Monitor -->
+      <div class="page active" id="page-dp-monitor">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Live Biosensor Monitor</h1>
+            <p class="page-subtitle" id="monitorSubtitle">Streaming real-time data from patient wearable</p>
+          </div>
+          <div class="header-actions">
+            <div class="patient-selector-wrap">
+              <label class="selector-label">Patient</label>
+              <select class="patient-select" id="patientSelect">
+                <option value="P001">Maria Lopez — P-001</option>
+                <option value="P002">James Chen — P-002</option>
+                <option value="P003">Sarah Park — P-003</option>
+              </select>
+            </div>
+            <div class="sensor-status" id="sensorStatusBadge">
+              <span class="live-dot"></span> Biosensor Active
+            </div>
+          </div>
+        </div>
+
+        <!-- ECG Strip -->
+        <div class="ecg-card">
+          <div class="ecg-header">
+            <div class="ecg-title-row">
+              <span class="ecg-label">ECG Waveform</span>
+              <span class="ecg-lead">Lead II · 25 mm/s</span>
+            </div>
+            <div class="ecg-meta" id="ecgBpmDoctor">
+              <span class="ecg-bpm-val" id="ecgBpmDr">--</span>
+              <span class="ecg-bpm-unit">BPM</span>
+            </div>
+          </div>
+          <canvas id="ecgDoctor" class="ecg-canvas"></canvas>
+        </div>
+
+        <!-- Vital Cards Grid -->
+        <div class="vitals-grid" id="drVitalsGrid">
+          <!-- Injected by JS -->
+        </div>
+
+        <!-- Alert Banner -->
+        <div class="alert-banner hidden" id="drAlertBanner">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"/></svg>
+          <span id="drAlertText">Abnormal vital detected</span>
+          <button class="banner-dismiss" onclick="document.getElementById('drAlertBanner').classList.add('hidden')">✕</button>
+        </div>
+
+        <div class="last-updated-bar">
+          <svg viewBox="0 0 16 16" fill="currentColor"><path fill-rule="evenodd" d="M8 0a8 8 0 100 16A8 8 0 008 0zM7 4.5v4.25l3.5 1.75-.75 1.5-4.25-2.125V4.5h1.5z"/></svg>
+          Last updated: <span id="drLastUpdated">--</span>
+          &nbsp;·&nbsp; Next update in <span id="drCountdown">--</span>s
+        </div>
+      </div>
+
+      <!-- PAGE: Patient Records -->
+      <div class="page" id="page-dp-patients">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Patient Records</h1>
+            <p class="page-subtitle">Demographics, medical history and biosensor history</p>
+          </div>
+          <button class="btn-primary">
+            <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"/></svg>
+            Add Patient
+          </button>
+        </div>
+
+        <div class="records-layout">
+          <!-- Patient List -->
+          <div class="patient-list-panel">
+            <div class="panel-search">
+              <svg viewBox="0 0 20 20" fill="none"><circle cx="9" cy="9" r="6" stroke="#9ca3af" stroke-width="1.8"/><path d="M13.5 13.5L17 17" stroke="#9ca3af" stroke-width="1.8" stroke-linecap="round"/></svg>
+              <input type="text" placeholder="Search patients…" />
+            </div>
+            <ul class="patient-list" id="patientListUl">
+              <li class="patient-list-item active" data-patient-id="P001">
+                <div class="pli-avatar" style="background:#fee2e2;color:#dc2626">ML</div>
+                <div class="pli-info">
+                  <p class="pli-name">Maria Lopez</p>
+                  <p class="pli-detail">Age 54 · Cardiology</p>
+                </div>
+                <span class="pli-badge pli-badge-red">Critical</span>
+              </li>
+              <li class="patient-list-item" data-patient-id="P002">
+                <div class="pli-avatar" style="background:#fef3c7;color:#b45309">JC</div>
+                <div class="pli-info">
+                  <p class="pli-name">James Chen</p>
+                  <p class="pli-detail">Age 41 · Endocrinology</p>
+                </div>
+                <span class="pli-badge pli-badge-yellow">Monitor</span>
+              </li>
+              <li class="patient-list-item" data-patient-id="P003">
+                <div class="pli-avatar" style="background:#d1fae5;color:#065f46">SP</div>
+                <div class="pli-info">
+                  <p class="pli-name">Sarah Park</p>
+                  <p class="pli-detail">Age 29 · Post-Surgery</p>
+                </div>
+                <span class="pli-badge pli-badge-green">Stable</span>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Patient Detail -->
+          <div class="patient-detail-panel" id="patientDetailPanel">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- PAGE: Trends & Analytics -->
+      <div class="page" id="page-dp-trends">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Trends &amp; Analytics</h1>
+            <p class="page-subtitle">24-hour biosensor trend analysis with spike detection</p>
+          </div>
+          <div class="header-actions">
+            <div class="patient-selector-wrap">
+              <label class="selector-label">Patient</label>
+              <select class="patient-select" id="trendsPatientSelect">
+                <option value="P001">Maria Lopez — P-001</option>
+                <option value="P002">James Chen — P-002</option>
+                <option value="P003">Sarah Park — P-003</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="trends-layout">
+          <div class="trends-charts">
+            <div class="chart-card">
+              <div class="chart-header">
+                <div><h3 class="chart-title">Heart Rate</h3><p class="chart-sub">24h trend · bpm</p></div>
+                <div class="chart-legend">
+                  <span class="legend-dot" style="background:#dc2626"></span><span>Heart Rate</span>
+                  <span class="legend-dot" style="background:#fca5a5;margin-left:12px"></span><span>Normal Range</span>
+                </div>
+              </div>
+              <div class="chart-wrap" style="height:180px"><canvas id="hrTrendChart"></canvas></div>
+            </div>
+            <div class="chart-card">
+              <div class="chart-header">
+                <div><h3 class="chart-title">Blood Pressure</h3><p class="chart-sub">24h trend · mmHg</p></div>
+                <div class="chart-legend">
+                  <span class="legend-dot" style="background:#dc2626"></span><span>Systolic</span>
+                  <span class="legend-dot" style="background:#f97316;margin-left:12px"></span><span>Diastolic</span>
+                </div>
+              </div>
+              <div class="chart-wrap" style="height:180px"><canvas id="bpTrendChart"></canvas></div>
+            </div>
+            <div class="chart-card">
+              <div class="chart-header">
+                <div><h3 class="chart-title">SpO₂ &amp; Respiratory Rate</h3><p class="chart-sub">24h trend</p></div>
+                <div class="chart-legend">
+                  <span class="legend-dot" style="background:#6366f1"></span><span>SpO₂ %</span>
+                  <span class="legend-dot" style="background:#0ea5e9;margin-left:12px"></span><span>Resp. Rate /min</span>
+                </div>
+              </div>
+              <div class="chart-wrap" style="height:180px"><canvas id="spo2TrendChart"></canvas></div>
+            </div>
+          </div>
+          <div class="trends-events">
+            <div class="events-panel">
+              <h3 class="events-title">
+                <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"/></svg>
+                Detected Events
+              </h3>
+              <p class="events-sub">Last 24 hours · Auto-detected anomalies</p>
+              <ul class="events-list" id="eventsList">
+                <!-- Rendered by JS -->
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PAGE: Doctor Messages -->
+      <div class="page" id="page-dp-messages">
+        <div class="page-header">
+          <div><h1 class="page-title">Messages</h1><p class="page-subtitle">Secure messaging with your patients</p></div>
+        </div>
+        <div class="messages-layout">
+          <div class="msg-contacts">
+            <div class="msg-contact-item active" data-contact="maria">
+              <div class="pli-avatar" style="background:#fee2e2;color:#dc2626">ML</div>
+              <div class="pli-info">
+                <p class="pli-name">Maria Lopez</p>
+                <p class="pli-detail">3 unread messages</p>
+              </div>
+              <span class="msg-unread">3</span>
+            </div>
+            <div class="msg-contact-item" data-contact="james">
+              <div class="pli-avatar" style="background:#fef3c7;color:#b45309">JC</div>
+              <div class="pli-info">
+                <p class="pli-name">James Chen</p>
+                <p class="pli-detail">Yesterday</p>
+              </div>
+            </div>
+            <div class="msg-contact-item" data-contact="sarah">
+              <div class="pli-avatar" style="background:#d1fae5;color:#065f46">SP</div>
+              <div class="pli-info">
+                <p class="pli-name">Sarah Park</p>
+                <p class="pli-detail">June 9</p>
+              </div>
+            </div>
+          </div>
+          <div class="msg-thread-wrap">
+            <div class="msg-thread-header">
+              <div class="pli-avatar" style="background:#fee2e2;color:#dc2626;width:38px;height:38px;font-size:.85rem">ML</div>
+              <div>
+                <p class="msg-thread-name">Maria Lopez</p>
+                <p class="msg-thread-meta">Patient P-001 · Cardiology · <span class="online-dot"></span> Active Now</p>
+              </div>
+            </div>
+            <div class="msg-thread" id="drMsgThread"><!-- Rendered by JS --></div>
+            <div class="msg-compose">
+              <input type="text" id="drMsgInput" class="msg-input" placeholder="Type a message to Maria…" />
+              <button class="msg-send-btn" id="drSendBtn" aria-label="Send">
+                <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           PATIENT PORTAL PAGES
+           ===================================================== -->
+
+      <!-- PAGE: My Vitals -->
+      <div class="page" id="page-pp-vitals">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">My Vitals</h1>
+            <p class="page-subtitle">Live readings from your MediCore Band Pro biosensor</p>
+          </div>
+          <div class="sensor-status">
+            <span class="live-dot"></span> MediCore Band Pro · Connected
+          </div>
+        </div>
+
+        <!-- Health summary banner -->
+        <div class="health-banner" id="ptHealthBanner">
+          <div class="hb-icon">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M22 12h-4l-3 9L9 3l-3 9H2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div>
+            <p class="hb-title" id="ptBannerTitle">Monitoring your health…</p>
+            <p class="hb-sub" id="ptBannerSub">Your biosensor is streaming data to your care team.</p>
+          </div>
+        </div>
+
+        <!-- ECG Strip -->
+        <div class="ecg-card">
+          <div class="ecg-header">
+            <div class="ecg-title-row">
+              <span class="ecg-label">Your ECG Waveform</span>
+              <span class="ecg-lead">Real-time · Lead II</span>
+            </div>
+            <div class="ecg-meta">
+              <span class="ecg-bpm-val" id="ecgBpmPt">--</span>
+              <span class="ecg-bpm-unit">BPM</span>
+            </div>
+          </div>
+          <canvas id="ecgPatient" class="ecg-canvas"></canvas>
+        </div>
+
+        <!-- Vitals Grid -->
+        <div class="vitals-grid" id="ptVitalsGrid">
+          <!-- Injected by JS -->
+        </div>
+      </div>
+
+      <!-- PAGE: Find Specialists (Map) -->
+      <div class="page" id="page-pp-map">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Find Specialists</h1>
+            <p class="page-subtitle">Doctors and specialists near your current location · San Francisco, CA</p>
+          </div>
+          <div class="header-actions">
+            <select class="patient-select" id="specialtyFilter">
+              <option value="all">All Specialties</option>
+              <option value="cardiology">Cardiology</option>
+              <option value="endocrinology">Endocrinology</option>
+              <option value="neurology">Neurology</option>
+              <option value="pulmonology">Pulmonology</option>
+              <option value="general">General Practice</option>
+            </select>
+          </div>
+        </div>
+        <div class="map-layout">
+          <div class="map-container" id="specialistsMap"></div>
+          <div class="map-doctor-list" id="mapDoctorList">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- PAGE: My Health -->
+      <div class="page" id="page-pp-health">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">My Health</h1>
+            <p class="page-subtitle">Doctor's diagnosis and AI-powered health insights from your biosensor data</p>
+          </div>
+        </div>
+        <div class="health-layout">
+          <!-- Doctor Diagnosis -->
+          <div class="diagnosis-panel">
+            <div class="chart-card">
+              <div class="diagnosis-header">
+                <div class="diag-dr-avatar">DR</div>
+                <div>
+                  <p class="diag-dr-name">Dr. Reynolds</p>
+                  <p class="diag-dr-meta">Chief Medical Officer · Last updated June 10, 2026</p>
+                </div>
+                <span class="diag-badge">Official Diagnosis</span>
+              </div>
+              <div class="diag-body">
+                <h3 class="diag-title">Cardiac Arrhythmia with Hypertension (Stage 1) &amp; Type 2 Diabetes</h3>
+                <p class="diag-text">Patient presents with intermittent sinus tachycardia, elevated resting heart rate (85–95 bpm), and consistent morning blood pressure spikes (≥142/92 mmHg). Biosensor data confirms elevated resting HR and irregular rhythm episodes. Blood glucose averaging 148–165 mg/dL, indicating suboptimal glycemic control. Current medication regimen is being adjusted based on biosensor trends.</p>
+                <div class="diag-section">
+                  <h4 class="diag-section-title">Current Medications</h4>
+                  <ul class="med-list">
+                    <li class="med-item"><span class="med-name">Metoprolol</span><span class="med-dose">50mg · Twice daily</span><span class="med-note">For heart rate and BP control</span></li>
+                    <li class="med-item"><span class="med-name">Lisinopril</span><span class="med-dose">10mg · Once daily</span><span class="med-note">ACE inhibitor for hypertension</span></li>
+                    <li class="med-item"><span class="med-name">Metformin</span><span class="med-dose">1000mg · Twice daily</span><span class="med-note">Type 2 diabetes management</span></li>
+                  </ul>
+                </div>
+                <div class="diag-section">
+                  <h4 class="diag-section-title">Upcoming Appointments</h4>
+                  <div class="appt-row">
+                    <div class="appt-icon"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"/></svg></div>
+                    <div><p class="appt-row-title">Cardiology Follow-up</p><p class="appt-row-meta">June 20, 2026 at 10:30 AM · Dr. Reynolds</p></div>
+                    <span class="appt-tag appt-tag-yellow">10 days</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- AI Insights -->
+          <div class="ai-panel">
+            <div class="ai-panel-header">
+              <div class="ai-icon">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z" fill="currentColor"/></svg>
+              </div>
+              <div>
+                <h3 class="ai-title">AI Health Insights</h3>
+                <p class="ai-sub">Based on your live biosensor data and 24h trends</p>
+              </div>
+              <span class="ai-badge">Beta</span>
+            </div>
+            <div class="ai-suggestions" id="aiSuggestions">
+              <!-- Rendered by JS -->
+            </div>
+            <div class="ai-disclaimer">
+              <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 0a8 8 0 100 16A8 8 0 008 0zM7 4.5h2v5H7v-5zm0 6h2v2H7v-2z"/></svg>
+              These AI insights are generated from biosensor patterns and are <strong>not a substitute</strong> for professional medical advice. Always consult your doctor.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PAGE: Patient Messages -->
+      <div class="page" id="page-pp-messages">
+        <div class="page-header">
+          <div><h1 class="page-title">Messages</h1><p class="page-subtitle">Secure messaging with your care team</p></div>
+        </div>
+        <div class="messages-layout">
+          <div class="msg-contacts">
+            <div class="msg-contact-item active">
+              <div class="pli-avatar" style="background:#e0e7ff;color:#4338ca;width:40px;height:40px;font-size:.8rem;flex-shrink:0">DR</div>
+              <div class="pli-info">
+                <p class="pli-name">Dr. Reynolds</p>
+                <p class="pli-detail">Chief Medical Officer</p>
+              </div>
+              <span class="msg-unread">3</span>
+            </div>
+          </div>
+          <div class="msg-thread-wrap">
+            <div class="msg-thread-header">
+              <div class="pli-avatar" style="background:#e0e7ff;color:#4338ca;width:38px;height:38px;font-size:.85rem">DR</div>
+              <div>
+                <p class="msg-thread-name">Dr. Reynolds</p>
+                <p class="msg-thread-meta">Your care team · <span class="online-dot"></span> Active Now</p>
+              </div>
+            </div>
+            <div class="msg-thread" id="ptMsgThread"><!-- Rendered by JS --></div>
+            <div class="msg-compose">
+              <input type="text" id="ptMsgInput" class="msg-input" placeholder="Message Dr. Reynolds…" />
+              <button class="msg-send-btn" id="ptSendBtn" aria-label="Send">
+                <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Toast notifications -->
+  <div id="toastContainer"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
